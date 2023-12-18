@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:postman_app/app/ui/utils/functions.dart';
 import 'package:http/http.dart' as http;
+import 'package:postman_app/app/controllers/main_controller.dart';
 import 'package:postman_app/main.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 abstract class ReqType {
   static const String get = "GET";
@@ -47,8 +48,35 @@ class HomeController extends GetxController {
   RxBool headersOpen = true.obs;
   late AnimationController headersAnimationController;
 
+  RxBool showWebView = false.obs;
+  RxBool lockWebView = false.obs;
+
   RxBool fetching = false.obs;
   RxString result = ''.obs;
+
+  late Onglet onglet;
+
+  late WebViewController webViewController = WebViewController()
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    ..setBackgroundColor(const Color(0x00000000))
+    ..setNavigationDelegate(
+      NavigationDelegate(
+        onProgress: (int progress) {
+          // Update loading bar.
+        },
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) async {
+         await webViewController.runJavaScriptReturningResult(
+              "document.documentElement.outerHTML;");
+          setTitle();
+        },
+        onWebResourceError: (WebResourceError error) {},
+        onNavigationRequest: (NavigationRequest request) {
+          urlController.text = request.url;
+          return NavigationDecision.navigate;
+        },
+      ),
+    );
 
   String get realUrl {
     String url = urlController.text;
@@ -152,7 +180,10 @@ class HomeController extends GetxController {
       result.value = e.toString();
       print(e);
     }
+
     fetching.value = false;
+    await webViewController.loadHtmlString(result.value,
+        baseUrl: url.split("?")[0]);
 
     // message(result.value);
     save();
@@ -160,6 +191,17 @@ class HomeController extends GetxController {
 
   void addParams() {
     params.add(ReqParams());
+  }
+
+  void setOnglet(Onglet onglet) {
+    this.onglet = onglet;
+  }
+
+  Future<void> setTitle() async {
+    String? title = await webViewController.getTitle();
+    if (title == null || title.trim().isEmpty) return;
+    onglet.name = title.split("?").first;
+    Get.find<MainController>().onglets.refresh();
   }
 
   void addHeaders() {

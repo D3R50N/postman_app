@@ -6,14 +6,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/ui/theme/colors.dart';
-import 'package:postman_app/app/ui/utils/functions.dart';
-import 'package:postman_app/extensions/color_extension.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../../controllers/home_controller.dart';
 
 class HomePage extends GetView {
   @override
-  HomeController controller;
-  HomePage(this.controller, {super.key});
+  final HomeController controller;
+  const HomePage(this.controller, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +112,9 @@ class HomePage extends GetView {
             ),
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: controller.lockWebView.isFalse
+                    ? const BouncingScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -315,7 +316,8 @@ class HomePage extends GetView {
                         children: [
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(10),
+                            padding: EdgeInsets.all(
+                                controller.showWebView.isFalse ? 10 : 5),
                             decoration: BoxDecoration(
                               color: primaryColor.withOpacity(.1),
                               borderRadius: BorderRadius.circular(10),
@@ -327,41 +329,115 @@ class HomePage extends GetView {
                                 )
                               ],
                             ),
-                            child: SelectableText(
-                              (controller.result.value.startsWith('[') ||
-                                      controller.result.value.startsWith('{'))
-                                  ? const JsonEncoder.withIndent("    ")
-                                      .convert(
-                                      json.decode(utf8.decode(
-                                          controller.result.value.codeUnits)),
-                                    )
-                                  : controller.result.value,
-                              style: const TextStyle(),
-                            ),
+                            child: controller.showWebView.isFalse
+                                ? SelectableText(
+                                    (controller.result.value.startsWith('[') ||
+                                            controller.result.value
+                                                .startsWith('{'))
+                                        ? const JsonEncoder.withIndent("    ")
+                                            .convert(
+                                            json.decode(utf8.decode(controller
+                                                .result.value.codeUnits)),
+                                          )
+                                        : controller.result.value,
+                                    style: const TextStyle(),
+                                  )
+                                : ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 400,
+                                    ),
+                                    child: WebViewWidget(
+                                        controller:
+                                            controller.webViewController),
+                                  ),
                           ),
+                          if (controller.showWebView.isTrue)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  controller.lockWebView.value =
+                                      !controller.lockWebView.value;
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white70,
+                                    borderRadius: BorderRadius.circular(5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(.2),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ],
+                                  ),
+                                  child: Icon(
+                                      controller.lockWebView.isFalse
+                                          ? Icons.lock_open
+                                          : Icons.lock_outline,
+                                      size: 20),
+                                ),
+                              ),
+                            ),
                           Positioned(
                             top: 0,
                             right: 0,
-                            child: GestureDetector(
-                              onTap: () {
-                                copyToClipboard(controller.result.value);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                margin: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: Colors.white70,
-                                  borderRadius: BorderRadius.circular(5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(.2),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ],
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    controller.showWebView.value =
+                                        !controller.showWebView.value;
+                                    if (controller.showWebView.isFalse) {
+                                      controller.lockWebView.value = false;
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white70,
+                                      borderRadius: BorderRadius.circular(5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(.2),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        )
+                                      ],
+                                    ),
+                                    child: Icon(
+                                        controller.showWebView.isTrue
+                                            ? Icons.preview
+                                            : Icons.data_array,
+                                        size: 20),
+                                  ),
                                 ),
-                                child: const Icon(Icons.copy, size: 20),
-                              ),
+                                GestureDetector(
+                                  onTap: () {
+                                    copyToClipboard(controller.result.value);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white70,
+                                      borderRadius: BorderRadius.circular(5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(.2),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        )
+                                      ],
+                                    ),
+                                    child: const Icon(Icons.copy, size: 20),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],

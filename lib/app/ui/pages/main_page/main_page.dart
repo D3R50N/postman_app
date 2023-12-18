@@ -1,12 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/ui/pages/home_page/home_page.dart';
-import 'package:postman_app/app/ui/theme/colors.dart';
-import '../../../controllers/home_controller.dart';
 import '../../../controllers/main_controller.dart';
 
 class MainPage extends GetView<MainController> {

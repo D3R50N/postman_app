@@ -22,8 +22,10 @@ class MainController extends GetxController with GetTickerProviderStateMixin {
     if (onglets.where((p0) => p0.id == id).isNotEmpty) {
       id = onglets.length + 1;
     }
-    onglets.add(
-        Onglet(id, controller: HomeController())..name = "Onglet ${id + 1}");
+    Onglet onglet = Onglet(id, controller: HomeController())
+      ..name = "Onglet ${id + 1}";
+    onglet.controller.setOnglet(onglet);
+    onglets.add(onglet);
     tabController.value = TabController(length: onglets.length, vsync: this);
     tabController.value.addListener(listener);
     tabController.value.animateTo(onglets.length - 1);

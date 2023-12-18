@@ -25,7 +25,7 @@ Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
   Animate.restartOnHotReload = true;
   prefs = await SharedPreferences.getInstance();
-  // await Future.delayed(const Duration(seconds: 1));
+  await Future.delayed(const Duration(seconds: 1));
   runApp(const MyApp());
 }
 

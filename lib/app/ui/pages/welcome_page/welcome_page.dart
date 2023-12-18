@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import '../../../controllers/welcome_controller.dart';
 
 class WelcomePage extends GetView<WelcomeController> {
   const WelcomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
+    controller.onInit();
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -39,8 +40,6 @@ class WelcomePage extends GetView<WelcomeController> {
               .shimmer(
                 duration: 1500.ms,
               ),
-          const Gap(20),
-          Obx(() => Text(controller.loadingText.string)),
         ],
       ),
     );

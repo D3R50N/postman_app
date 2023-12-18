@@ -34,6 +34,11 @@ class HistoryPage extends GetView<HistoryController> {
                   homeController.urlController.text = element.url;
 
                   homeController.result.value = element.result;
+                  await homeController.webViewController.loadHtmlString(
+                    element.result,
+                    baseUrl: element.url.split("?").first,
+                  );
+                  // homeController.setTitle();
 
                   homeController.headers.clear();
                   for (Map header in element.headers) {
