@@ -8,7 +8,7 @@ Color rgba(int r, int g, int b, double a) {
   return Color.fromRGBO(r, g, b, a);
 }
 
-Color primaryColor = rgb(10, 136, 221);
+Color primaryColor = rgb(0, 131, 143);
 Color primaryColorDark = rgb(0, 131, 143);
 
 Color secondaryColor = rgb(106, 0, 139);

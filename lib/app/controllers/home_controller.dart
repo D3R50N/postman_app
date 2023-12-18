@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/ui/utils/functions.dart';
 import 'package:http/http.dart' as http;
+import 'package:postman_app/main.dart';
 
 abstract class ReqType {
   static const String get = "GET";
@@ -18,6 +21,16 @@ abstract class ReqType {
     put,
     delete,
   ];
+}
+
+RxList<ReqSave> history = <ReqSave>[].obs;
+Future<void> loadHistory() async {
+  print("loading history");
+  var h = prefs.getString("history");
+  if (h != null) {
+    final decoded = jsonDecode(h) as List<dynamic>;
+    history.value = decoded.map((e) => ReqSave.fromJson(e)).toList();
+  }
 }
 
 class HomeController extends GetxController {
@@ -41,7 +54,9 @@ class HomeController extends GetxController {
     String url = urlController.text;
     if (!url.startsWith("https://") && !url.startsWith("http://")) {
       url = url.replaceAll("://", "");
-      if (!url.startsWith("www.")) url = "www.$url";
+      if (!url.startsWith("www.") && url.indexOf(".") == url.lastIndexOf(".")) {
+        url = "www.$url";
+      }
       url = "https://$url";
     }
     return url;
@@ -56,7 +71,7 @@ class HomeController extends GetxController {
     var type = reqTypeController.text;
     if (!ReqType.all.contains(type)) message("Méthode $type invalide");
 
-    if (!url.endsWith("/")) url = "$url/";
+    if (!url.endsWith("/") && !url.contains("?")) url = "$url/";
 
     for (var param in params) {
       String paramString = "${param.key}=${param.value}";
@@ -88,7 +103,7 @@ class HomeController extends GetxController {
     }
 
     print("Headers $headers");
-    print("boddy $body");
+    print("body $body");
     try {
       switch (type) {
         case ReqType.get:
@@ -140,6 +155,7 @@ class HomeController extends GetxController {
     fetching.value = false;
 
     // message(result.value);
+    save();
   }
 
   void addParams() {
@@ -227,6 +243,60 @@ class HomeController extends GetxController {
       ),
     );
   }
+
+  Future<void> save() async {
+    var json = ReqSave(
+      url: realUrl,
+      type: reqTypeController.text,
+      result: result.value,
+      params: params.map((e) => e.toJson()).toList(),
+      headers: headers.map((e) => e.toJson()).toList(),
+      date: DateTime.now(),
+    );
+
+    history.add(json);
+    await prefs.setString(
+        "history", jsonEncode(history.map((e) => e.toJson()).toList()));
+  }
+}
+
+class ReqSave {
+  String url;
+  String type;
+  String result;
+  List<dynamic> params;
+  List<dynamic> headers;
+  DateTime date;
+
+  ReqSave({
+    required this.url,
+    required this.type,
+    required this.result,
+    required this.params,
+    required this.headers,
+    required this.date,
+  });
+
+  factory ReqSave.fromJson(Map<String, dynamic> json) {
+    return ReqSave(
+      url: json['url'],
+      type: json['type'],
+      result: json['result'],
+      params: json['params'],
+      headers: json['headers'],
+      date:
+          json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'type': type,
+        'result': result,
+        'params': params,
+        'headers': headers,
+        'date': date.toString(),
+      };
 }
 
 class ReqParams {
@@ -235,6 +305,11 @@ class ReqParams {
 
   String get key => keyController.text;
   String get value => valueController.text;
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'value': value,
+      };
 }
 
 class ReqHeaders {
@@ -246,6 +321,13 @@ class ReqHeaders {
 
   String get key => keyController.text;
   String get value => valueController.text;
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'value': value,
+        'isAuth': isAuth,
+        'isBearer': isBearer,
+      };
 }
 
 void message(String text) {

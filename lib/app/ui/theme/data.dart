@@ -16,6 +16,7 @@ ThemeData lightThemeData = ThemeData(
     secondary: secondaryColor,
     surface: backgroundColor,
   ),
+  useMaterial3: false,
   cardColor: cardColor,
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: navColor,
