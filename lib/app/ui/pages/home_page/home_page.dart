@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/ui/theme/colors.dart';
 import 'package:postman_app/app/ui/utils/functions.dart';
+import 'package:postman_app/extensions/color_extension.dart';
 import '../../../controllers/home_controller.dart';
 
 class HomePage extends GetView {
@@ -86,6 +87,9 @@ class HomePage extends GetView {
 
                         controller.fetchUrl();
                       },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7),
+                      ),
                       splashColor: Colors.blueGrey,
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
@@ -97,7 +101,12 @@ class HomePage extends GetView {
                           ),
                         ),
                       ),
-                    ),
+                    )
+                        .animate(onComplete: (c) {
+                          c.loop();
+                        })
+                        .shake(hz: 5, rotation: .02)
+                        .then(duration: 5000.ms),
                   ),
                 ],
               ),
@@ -147,7 +156,7 @@ class HomePage extends GetView {
                             "Ajouter",
                             style: TextStyle(
                               color: primaryColor,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -244,7 +253,7 @@ class HomePage extends GetView {
                             "Ajouter",
                             style: TextStyle(
                               color: primaryColor,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

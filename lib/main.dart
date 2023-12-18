@@ -15,9 +15,9 @@ import 'app/bindings/main_binding.dart';
 import 'app/bindings/history_binding.dart';
 import 'app/ui/pages/history_page/history_page.dart';
 
-
 import 'app/bindings/welcome_binding.dart';
 import 'app/ui/pages/welcome_page/welcome_page.dart';
+
 late SharedPreferences prefs;
 
 Future<void> main() async {
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Postman App',
+      title: 'LePosteur',
       debugShowCheckedModeBanner: false,
       theme: lightThemeData,
       darkTheme: darkThemeData,
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
           page: () => const WelcomePage(),
           binding: WelcomeBinding(),
         ),
-         GetPage(
+        GetPage(
           name: Routes.history,
           page: () => const HistoryPage(),
           binding: HistoryBinding(),

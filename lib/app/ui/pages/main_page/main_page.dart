@@ -16,7 +16,7 @@ class MainPage extends GetView<MainController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PostMan'),
+        title: const Text('LePosteur'),
         actions: [
           IconButton(
             onPressed: () => controller.newOnglet(),
@@ -61,9 +61,7 @@ class MainPage extends GetView<MainController> {
                                   color: controller.currentOnglet.value ==
                                           controller.onglets.indexOf(element)
                                       ? Theme.of(context).primaryColor
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .background,
+                                      : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 child: Row(

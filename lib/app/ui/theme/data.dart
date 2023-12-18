@@ -27,7 +27,7 @@ ThemeData lightThemeData = ThemeData(
     elevation: 0,
   ),
   iconTheme: IconThemeData(color: fontColor),
-  fontFamily: 'Montserrat',
+  fontFamily: 'Poppins',
   primaryColor: primaryColor,
 );
 
@@ -57,6 +57,6 @@ ThemeData darkThemeData = ThemeData(
     elevation: 0,
   ),
   iconTheme: IconThemeData(color: fontColorDark),
-  fontFamily: 'Montserrat',
+  fontFamily: 'Poppins',
   primaryColor: primaryColorDark,
 );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/controllers/home_controller.dart';
 import 'package:postman_app/app/controllers/main_controller.dart';
+import 'package:postman_app/app/ui/theme/colors.dart';
 import 'package:postman_app/main.dart';
 import '../../../controllers/history_controller.dart';
 
@@ -14,7 +15,7 @@ class HistoryPage extends GetView<HistoryController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HistoryPage'),
+        title: const Text('Historique des requêtes'),
       ),
       body: Obx(
         () => SafeArea(
@@ -24,6 +25,7 @@ class HistoryPage extends GetView<HistoryController> {
             itemBuilder: (context, index) {
               final element = history.reversed.elementAt(index);
               return ListTile(
+                dense: true,
                 onTap: () async {
                   MainController mainController = Get.find<MainController>();
                   HomeController homeController = mainController
@@ -60,7 +62,12 @@ class HistoryPage extends GetView<HistoryController> {
                     jsonEncode(history.map((e) => e.toJson()).toList()),
                   );
                 },
-                title: Text(element.url),
+                title: Text(
+                  element.url,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: primaryColor),
+                ),
                 subtitle: Text(element.type),
                 trailing: Text(element.date.toString().split(".")[0]),
               );
