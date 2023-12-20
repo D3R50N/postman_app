@@ -35,7 +35,7 @@ class HomePage extends GetView {
                     text: "Queries (${controller.params.length})",
                   )),
               Obx(() => Tab(
-                    text: "Body (${controller.params.length})",
+                    text: "Body (${controller.bodies.length})",
                   )),
               const Tab(
                 text: "Résultat",
@@ -479,7 +479,7 @@ class HomePage extends GetView {
                   TextButton(
                     onPressed: controller.addBody,
                     child: Text(
-                      "Nouveau champ",
+                      "Ajouter champ",
                       style: TextStyle(
                         color: secondaryColor,
                         fontWeight: FontWeight.w600,
@@ -503,24 +503,35 @@ class HomePage extends GetView {
               )
             else
               Expanded(
-                child: TextField(
-                  controller: controller.bodyTextController,
-                  maxLines: 30,
-                  onChanged: (s) {
-                    if (controller.isJson.isTrue) {
-                      try {
-                        controller.bodyTextController.text =
-                            const JsonEncoder.withIndent("    ").convert(
-                          json.decode(utf8.decode(s.codeUnits)),
-                        );
-                      } catch (e) {}
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    fillColor: Colors.white,
-                    filled: true,
-                  ),
+                child: Stack(
+                  children: [
+                    TextField(
+                      controller: controller.bodyTextController,
+                      maxLines: 30,
+                      onChanged: (s) {
+                        if (controller.isJson.isTrue) {
+                          try {
+                            controller.bodyTextController.text =
+                                const JsonEncoder.withIndent("    ").convert(
+                              json.decode(utf8.decode(s.codeUnits)),
+                            );
+                          } catch (e) {}
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        fillColor: Colors.white,
+                        filled: true,
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Opacity(
+                          opacity: .7,
+                          child: pasteBtn(controller.bodyTextController)),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -553,11 +564,12 @@ class HomePage extends GetView {
                 flex: 2,
                 child: TextField(
                   controller: element.valueController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     fillColor: Colors.white,
                     filled: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                     labelText: 'Valeur',
+                    suffixIcon: pasteBtn(element.keyController),
                   ),
                 ),
               ),
@@ -568,7 +580,7 @@ class HomePage extends GetView {
             right: -10,
             child: GestureDetector(
               onTap: () {
-                controller.headers.remove(element);
+                controller.bodies.remove(element);
               },
               child: const Card(
                 shape: CircleBorder(),
@@ -615,6 +627,7 @@ class HomePage extends GetView {
                   decoration: InputDecoration(
                     fillColor: Colors.white,
                     filled: true,
+                    suffixIcon: pasteBtn(element.keyController),
                     border: const OutlineInputBorder(),
                     labelText: element.isAuth
                         ? "Authorization${element.isBearer ? " - Bearer" : ''}"
@@ -672,11 +685,12 @@ class HomePage extends GetView {
                 flex: 2,
                 child: TextField(
                   controller: element.valueController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                     labelText: 'Valeur',
+                    suffixIcon: pasteBtn(element.valueController),
                   ),
                 ),
               ),
@@ -705,6 +719,15 @@ class HomePage extends GetView {
           .slideX(begin: 1, end: 0, duration: 100.ms),
     );
   }
+
+  GestureDetector pasteBtn(TextEditingController controller) {
+    return GestureDetector(
+      onTap: () async {
+        controller.text = await pasteFromClipboard();
+      },
+      child: const Icon(Icons.paste_outlined),
+    );
+  }
 }
 
 Future<void> copyToClipboard(String value) async {
@@ -715,4 +738,9 @@ Future<void> copyToClipboard(String value) async {
     message("Erreur lors de la copie dans le presse-papier");
     print(e);
   }
+}
+
+Future<String> pasteFromClipboard() async {
+  ClipboardData? data = await Clipboard.getData("text/plain");
+  return data?.text ?? "";
 }
