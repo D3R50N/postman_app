@@ -26,7 +26,7 @@ Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
   Animate.restartOnHotReload = true;
   prefs = await SharedPreferences.getInstance();
-  await Future.delayed(const Duration(seconds: 1));
+  // await Future.delayed(const Duration(seconds: 1));
   runApp(const MyApp());
 }
 
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       theme: lightThemeData,
       darkTheme: darkThemeData,
       themeMode: ThemeMode.light,
-      initialRoute: Routes.welcome,
+      initialRoute: Routes.main,
       getPages: [
         GetPage(
           name: Routes.main,
@@ -59,7 +59,6 @@ class MyApp extends StatelessWidget {
           binding: HistoryBinding(),
         ),
       ],
-      
     );
   }
 }

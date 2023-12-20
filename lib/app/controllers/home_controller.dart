@@ -35,21 +35,25 @@ Future<void> loadHistory() async {
   }
 }
 
-class HomeController extends GetxController {
+class HomeController extends GetxController with GetTickerProviderStateMixin {
   RxList<ReqParams> params = <ReqParams>[].obs;
+  RxList<ReqBody> bodies = <ReqBody>[].obs;
   RxList<ReqHeaders> headers = <ReqHeaders>[].obs;
 
-  RxBool paramsOpen = true.obs;
-  RxBool headersOpen = true.obs;
   RxBool showWebView = false.obs;
   RxBool lockWebView = false.obs;
   RxBool fetching = false.obs;
+
+  RxBool isText = false.obs;
+  RxBool isJson = false.obs;
+  RxBool urlEncoded = true.obs;
 
   RxString result = ''.obs;
 
   TextEditingController reqTypeController =
       TextEditingController(text: ReqType.get);
   TextEditingController urlController = TextEditingController();
+  TextEditingController bodyTextController = TextEditingController();
 
   // ignore: constant_identifier_names
   static const Duration TIMEOUT = Duration(seconds: 15);
@@ -77,6 +81,8 @@ class HomeController extends GetxController {
         },
       ),
     );
+
+  late TabController tabController = TabController(length: 4, vsync: this);
 
   String get realUrl {
     String url = urlController.text;
@@ -123,6 +129,7 @@ class HomeController extends GetxController {
     // if (!url.endsWith("/") && !url.contains("?")) url = "$url/";
     String paramString = "";
     for (var param in params) {
+      if (!param.isValid) continue;
       paramString += "${param.key}=${param.value}&";
     }
     if (paramString.trim().isNotEmpty) {
@@ -134,10 +141,11 @@ class HomeController extends GetxController {
     fetching.value = true;
     if (isLocal(url)) url = url.replaceAll("www.", "");
     Uri uri = Uri.parse(url);
-    print("Requesting $uri");
+    print("Requesting $url");
     var headers = <String, String>{};
     var body = <String, String>{};
     for (var header in this.headers) {
+      if (!header.isValid) continue;
       if (header.isAuth) {
         if (header.isBearer) {
           headers[header.key] = "Bearer ${header.value}";
@@ -148,14 +156,22 @@ class HomeController extends GetxController {
         headers[header.key] = header.value;
       }
     }
-    // headers["Content-Type"] = "application/json";
 
-    for (var param in params) {
-      body[param.key] = param.value;
+    for (var bodie in bodies) {
+      body[bodie.key] = bodie.value;
+    }
+
+    dynamic bodyReq = isText.isTrue
+        ? bodyTextController.text
+        : urlEncoded.isTrue
+            ? body
+            : body.toString();
+    if (isJson.isTrue || (isText.isFalse && urlEncoded.isFalse)) {
+      headers["Content-Type"] = "application/json";
     }
 
     print("Headers $headers");
-    print("body $body");
+    print("body $bodyReq");
     try {
       switch (type) {
         case ReqType.get:
@@ -169,7 +185,7 @@ class HomeController extends GetxController {
           break;
         case ReqType.post:
           result.value = (await http
-                  .post(uri, headers: headers, body: body)
+                  .post(uri, headers: headers, body: bodyReq)
                   .timeout(TIMEOUT))
               .body;
           break;
@@ -178,7 +194,7 @@ class HomeController extends GetxController {
                   .delete(
                     uri,
                     headers: headers,
-                    body: body,
+                    body: bodyReq,
                   )
                   .timeout(TIMEOUT))
               .body;
@@ -188,7 +204,7 @@ class HomeController extends GetxController {
                   .put(
                     uri,
                     headers: headers,
-                    body: body,
+                    body: bodyReq,
                   )
                   .timeout(TIMEOUT))
               .body;
@@ -198,7 +214,7 @@ class HomeController extends GetxController {
                   .put(
                     uri,
                     headers: headers,
-                    body: body,
+                    body: bodyReq,
                   )
                   .timeout(TIMEOUT))
               .body;
@@ -217,11 +233,11 @@ class HomeController extends GetxController {
 
     // message(result.value);
     save();
+    tabController.animateTo(3);
   }
 
   void addParams() {
     params.add(ReqParams());
-    paramsOpen.value = true;
   }
 
   void setOnglet(Onglet onglet) {
@@ -294,7 +310,6 @@ class HomeController extends GetxController {
                         }
 
                         headers.add(header);
-                        headersOpen.value = true;
                       },
                       splashColor: Colors.blueGrey,
                       child: const Padding(
@@ -326,11 +341,20 @@ class HomeController extends GetxController {
       params: params.map((e) => e.toJson()).toList(),
       headers: headers.map((e) => e.toJson()).toList(),
       date: DateTime.now(),
+      body: bodies.map((e) => e.toJson()).toList(), 
+      bodyText: bodyTextController.text, 
+      isJson: isJson.value,
+      isText: isText.value,
+      urlEncoded: urlEncoded.value,
     );
 
     history.add(json);
     await prefs.setString(
         "history", jsonEncode(history.map((e) => e.toJson()).toList()));
+  }
+
+  void addBody() {
+    bodies.add(ReqBody());
   }
 }
 
@@ -340,6 +364,9 @@ class ReqSave {
   String result;
   List<dynamic> params;
   List<dynamic> headers;
+  List<dynamic> body;
+  String bodyText;
+  bool isText, isJson, urlEncoded;
   DateTime date;
 
   ReqSave({
@@ -349,6 +376,11 @@ class ReqSave {
     required this.params,
     required this.headers,
     required this.date,
+    required this.isText,
+    required this.isJson,
+    required this.urlEncoded,
+    required this.body,
+    required this.bodyText,
   });
 
   factory ReqSave.fromJson(Map<String, dynamic> json) {
@@ -358,6 +390,11 @@ class ReqSave {
       result: json['result'],
       params: json['params'],
       headers: json['headers'],
+      body: json["body"]??[],
+      bodyText: json["bodyText"]??"",
+      isText: json["isText"] ?? false,
+      isJson: json["isJson"]??false,
+      urlEncoded: json["urlEncoded"] ?? true,
       date:
           json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
     );
@@ -370,10 +407,30 @@ class ReqSave {
         'params': params,
         'headers': headers,
         'date': date.toString(),
+        "body": body,
+        "bodyText": bodyText,
+        "isText": isText,
+        "isJson": isJson,
+        "urlEncoded": urlEncoded,
       };
 }
 
 class ReqParams {
+  TextEditingController keyController = TextEditingController();
+  TextEditingController valueController = TextEditingController();
+
+  String get key => keyController.text;
+  String get value => valueController.text;
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'value': value,
+      };
+
+  bool get isValid => key.trim().isNotEmpty;
+}
+
+class ReqBody {
   TextEditingController keyController = TextEditingController();
   TextEditingController valueController = TextEditingController();
 
@@ -402,6 +459,8 @@ class ReqHeaders {
         'isAuth': isAuth,
         'isBearer': isBearer,
       };
+
+  bool get isValid => key.trim().isNotEmpty;
 }
 
 void message(String text) {

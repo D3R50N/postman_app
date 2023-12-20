@@ -34,6 +34,8 @@ class HistoryPage extends GetView<HistoryController> {
                   homeController.urlController.text = element.url;
 
                   homeController.result.value = element.result;
+                  homeController.tabController.animateTo(3);
+
                   await homeController.webViewController.loadHtmlString(
                     element.result,
                     baseUrl: element.url.split("?").first,
@@ -56,6 +58,18 @@ class HistoryPage extends GetView<HistoryController> {
                     reqParams.keyController.text = param["key"];
                     reqParams.valueController.text = param["value"];
                     homeController.params.add(reqParams);
+                  }
+
+                  homeController.isJson.value = element.isJson;
+                  homeController.isText.value = element.isText;
+                  homeController.urlEncoded.value = element.urlEncoded;
+                  homeController.bodyTextController.text = element.bodyText;
+                  homeController.bodies.clear();
+                  for (Map bodie in element.body) {
+                    ReqBody reqBodies = ReqBody();
+                    reqBodies.keyController.text = bodie["key"];
+                    reqBodies.valueController.text = bodie["value"];
+                    homeController.bodies.add(reqBodies);
                   }
                   await Future.delayed(const Duration(milliseconds: 200));
                   Get.back();
