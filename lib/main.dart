@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:postman_app/app/controllers/home_controller.dart';
 import 'package:postman_app/app/routes/route.dart';
 import 'package:postman_app/app/ui/pages/main_page/main_page.dart';
 
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
           binding: HistoryBinding(),
         ),
       ],
+      
     );
   }
 }

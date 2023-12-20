@@ -17,16 +17,17 @@ class HomePage extends GetView {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       child: Obx(
         () => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              clipBehavior: Clip.antiAlias,
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(.2),
@@ -38,74 +39,112 @@ class HomePage extends GetView {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controller.urlController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Entrer l\'url de la requête',
-                          ),
-                        ),
-                      ),
-                      const Gap(10),
-                      DropdownMenu<String>(
-                        dropdownMenuEntries: ReqType.all
-                            .map(
-                              (e) => DropdownMenuEntry(
-                                value: e,
-                                label: e,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        controller: controller.reqTypeController,
-                        width: 120,
-                        menuStyle: MenuStyle(
-                          backgroundColor: MaterialStateProperty.all(
-                            primaryColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  TextField(
+                    controller: controller.urlController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Entrer l\'url de la requête',
+                    ),
                   ),
                   const Gap(10),
                   Obx(
-                    () => MaterialButton(
-                      color: controller.fetching.isTrue
-                          ? Colors.grey
-                          : primaryColor,
-                      onPressed: () {
-                        if (controller.fetching.isTrue) {
-                          message("Une requête est déjà en cour..");
-                          return;
-                        }
+                    () => Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: controller.fetching.isTrue
+                            ? const Color.fromARGB(255, 78, 78, 78)
+                            : secondaryColor,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Obx(
+                              () => MaterialButton(
+                                onPressed: () {
+                                  if (controller.fetching.isTrue) {
+                                    message("Une requête est déjà en cours..");
+                                    return;
+                                  }
 
-                        controller.fetchUrl();
-                      },
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      splashColor: Colors.blueGrey,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Text(
-                          controller.fetching.isTrue ? "..." : 'Envoyer',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
+                                  controller.fetchUrl();
+                                },
+                                splashColor: Colors.transparent,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Text(
+                                    controller.fetching.isTrue
+                                        ? "..."
+                                        : 'Envoyer',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              )
+                                  .animate(onComplete: (c) {
+                                    c.loop();
+                                  })
+                                  .shake(hz: 5, rotation: .02)
+                                  .then(duration: 5000.ms),
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                              ),
+                              child: DropdownMenu<String>(
+                                onSelected: (s) {
+                                  // controller.isUorD.value =
+                                  //     controller.reqTypeController.text ==
+                                  //             ReqType.update ||
+                                  //         controller.reqTypeController.text ==
+                                  //             ReqType.delete;
+                                },
+                                dropdownMenuEntries: ReqType.all
+                                    .map(
+                                      (e) => DropdownMenuEntry(
+                                        value: e,
+                                        label: e,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        leadingIcon: const SizedBox.shrink(),
+                                      ),
+                                    )
+                                    .toList(),
+                                controller: controller.reqTypeController,
+                                menuStyle: MenuStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                    primaryColor,
+                                  ),
+                                  elevation: const MaterialStatePropertyAll(0),
+                                  alignment: Alignment.bottomLeft,
+                                ),
+                                textStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                width: 200,
+                                trailingIcon: const Icon(
+                                    Icons.keyboard_double_arrow_right_sharp),
+                                leadingIcon: const Icon(
+                                    Icons.keyboard_double_arrow_left_sharp),
+                                inputDecorationTheme:
+                                    const InputDecorationTheme(
+                                  border: InputBorder.none,
+                                  suffixIconColor: Colors.white,
+                                  prefixIconColor: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                        .animate(onComplete: (c) {
-                          c.loop();
-                        })
-                        .shake(hz: 5, rotation: .02)
-                        .then(duration: 5000.ms),
+                    ).animate().shimmer(),
                   ),
                 ],
               ),
@@ -123,12 +162,6 @@ class HomePage extends GetView {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (controller
-                                .paramsAnimationController.isCompleted) {
-                              controller.paramsAnimationController.reverse();
-                            } else {
-                              controller.paramsAnimationController.forward();
-                            }
                             controller.paramsOpen.toggle();
                           },
                           child: Row(
@@ -156,76 +189,36 @@ class HomePage extends GetView {
                           child: Text(
                             "Ajouter",
                             style: TextStyle(
-                              color: primaryColor,
+                              color: secondaryColor,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const Gap(20),
-                    Container(
-                      clipBehavior: Clip.antiAlias,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          )
-                        ],
-                      ),
-                      child: Obx(
-                        () => ListView(
-                          shrinkWrap: true,
-                          children: controller.params
-                              .map(
-                                (element) => paramsWidget(element),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    )
-                        .animate(
-                            autoPlay: false,
-                            onInit: (c) {
-                              controller.paramsAnimationController = c;
-                            })
-                        .custom(
-                          builder: (context, value, child) {
-                            if (controller.params.isEmpty) {
-                              return const SizedBox();
-                            }
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: double.maxFinite * value,
-                              ),
-                              child: Opacity(
-                                opacity: value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          begin: 1,
-                          end: 0,
-                          duration: 100.ms,
-                        ),
+                    const Gap(5),
                     if (controller.paramsOpen.isTrue &&
                         controller.params.isNotEmpty)
-                      const Gap(20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Obx(
+                          () => ListView(
+                            shrinkWrap: true,
+                            children: controller.params
+                                .map(
+                                  (element) => paramsWidget(element),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                    if (controller.paramsOpen.isTrue &&
+                        controller.params.isNotEmpty)
+                      const Gap(10),
                     Row(
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (controller
-                                .headersAnimationController.isCompleted) {
-                              controller.headersAnimationController.reverse();
-                            } else {
-                              controller.headersAnimationController.forward();
-                            }
                             controller.headersOpen.toggle();
                           },
                           child: Row(
@@ -253,63 +246,29 @@ class HomePage extends GetView {
                           child: Text(
                             "Ajouter",
                             style: TextStyle(
-                              color: primaryColor,
+                              color: secondaryColor,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const Gap(20),
-                    Container(
-                      clipBehavior: Clip.antiAlias,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          )
-                        ],
-                      ),
-                      child: Obx(
-                        () => ListView(
-                          shrinkWrap: true,
-                          children: controller.headers
-                              .map(
-                                (element) => headersWidget(element),
-                              )
-                              .toList(),
+                    const Gap(5),
+                    if (controller.headersOpen.isTrue &&
+                        controller.headers.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Obx(
+                          () => ListView(
+                            shrinkWrap: true,
+                            children: controller.headers
+                                .map(
+                                  (element) => headersWidget(element),
+                                )
+                                .toList(),
+                          ),
                         ),
                       ),
-                    )
-                        .animate(
-                            autoPlay: false,
-                            onInit: (c) {
-                              controller.headersAnimationController = c;
-                            })
-                        .custom(
-                          builder: (context, value, child) {
-                            if (controller.headers.isEmpty) {
-                              return const SizedBox();
-                            }
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: double.maxFinite * value,
-                              ),
-                              child: Opacity(
-                                opacity: value,
-                                child: child,
-                              ),
-                            );
-                          },
-                          begin: 1,
-                          end: 0,
-                          duration: 100.ms,
-                        ),
                     const Gap(20),
                     Obx(
                       () => Stack(
@@ -320,7 +279,7 @@ class HomePage extends GetView {
                                 controller.showWebView.isFalse ? 10 : 5),
                             decoration: BoxDecoration(
                               color: primaryColor.withOpacity(.1),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(5),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.grey.withOpacity(.0),
@@ -455,88 +414,116 @@ class HomePage extends GetView {
   }
 
   Widget headersWidget(ReqHeaders element) {
-    return Row(
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        if (!element.isAuth)
-          Expanded(
-            child: TextField(
-              controller: element.keyController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Clé',
+        Row(
+          children: [
+            if (!element.isAuth)
+              Expanded(
+                child: TextField(
+                  controller: element.keyController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white,
+                    filled: true,
+                    labelText: 'Clé',
+                  ),
+                ),
+              ),
+            if (!element.isAuth) const Gap(10),
+            Expanded(
+              flex: 2,
+              child: TextField(
+                controller: element.valueController,
+                decoration: InputDecoration(
+                  fillColor: Colors.white,
+                  filled: true,
+                  border: const OutlineInputBorder(),
+                  labelText: element.isAuth
+                      ? "Authorization${element.isBearer ? " - Bearer" : ''}"
+                      : 'Valeur',
+                ),
+              ),
+            ),
+          ],
+        ),
+        Positioned(
+          top: -10,
+          right: -10,
+          child: GestureDetector(
+            onTap: () {
+              controller.headers.remove(element);
+            },
+            child: const Card(
+              shape: CircleBorder(),
+              child: Icon(
+                Icons.cancel,
+                color: Colors.red,
               ),
             ),
           ),
-        if (!element.isAuth) const Gap(10),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: element.valueController,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: element.isAuth
-                  ? "Authorization${element.isBearer ? " - Bearer" : ''}"
-                  : 'Valeur',
-            ),
-          ),
-        ),
-        const Gap(10),
-        TextButton(
-          onPressed: () {
-            controller.headers.remove(element);
-          },
-          style: TextButton.styleFrom(
-            backgroundColor: Colors.red,
-            minimumSize: const Size.square(50),
-          ),
-          child: const Icon(
-            Icons.delete_forever_outlined,
-            color: Colors.white,
-          ),
         ),
       ],
-    ).paddingSymmetric(vertical: 2).animate().slideX(begin: 1, end: 0);
+    )
+        .paddingSymmetric(vertical: 2)
+        .animate()
+        .slideX(begin: 1, end: 0, duration: 100.ms);
   }
 
   Widget paramsWidget(ReqParams element) {
-    return Row(
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Expanded(
-          child: TextField(
-            controller: element.keyController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Clé',
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: element.keyController,
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(),
+                  labelText: 'Clé',
+                ),
+              ),
             ),
-          ),
-        ),
-        const Gap(10),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: element.valueController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Valeur',
+            const Gap(4),
+            Expanded(
+              flex: 2,
+              child: TextField(
+                controller: element.valueController,
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(),
+                  labelText: 'Valeur',
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-        const Gap(10),
-        TextButton(
-          onPressed: () {
-            controller.params.remove(element);
-          },
-          style: TextButton.styleFrom(
-            backgroundColor: Colors.red,
-            minimumSize: const Size.square(50),
-          ),
-          child: const Icon(
-            Icons.delete_forever_outlined,
-            color: Colors.white,
+        Positioned(
+          top: -10,
+          right: -10,
+          child: GestureDetector(
+            onTap: () {
+              controller.params.remove(element);
+            },
+            child: const Card(
+              shape: CircleBorder(),
+              child: Icon(
+                Icons.cancel,
+                color: Colors.red,
+              ),
+            ),
           ),
         ),
       ],
-    ).paddingSymmetric(vertical: 2).animate().slideX(begin: 1, end: 0);
+    )
+        .paddingSymmetric(vertical: 4)
+        .animate()
+        .slideX(begin: 1, end: 0, duration: 100.ms);
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:postman_app/app/ui/pages/home_page/home_page.dart';
+import 'package:postman_app/app/ui/theme/colors.dart';
 import '../../../controllers/main_controller.dart';
 
 class MainPage extends GetView<MainController> {
@@ -45,73 +46,83 @@ class MainPage extends GetView<MainController> {
                                   .goto(controller.onglets.indexOf(element));
                             },
                             child: Obx(
-                              () => AnimatedContainer(
+                              () => AnimatedScale(
                                 duration: const Duration(milliseconds: 200),
-                                constraints:
-                                    const BoxConstraints(minHeight: 40),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 5),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 5),
-                                decoration: BoxDecoration(
-                                  color: controller.currentOnglet.value ==
-                                          controller.onglets.indexOf(element)
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Gap(5),
-                                    Text(
-                                      element.name,
-                                      style: TextStyle(
-                                        color: controller.currentOnglet.value ==
-                                                controller.onglets
-                                                    .indexOf(element)
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                    AnimatedContainer(
-                                      margin: const EdgeInsets.only(left: 10),
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: const BoxDecoration(),
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      width: controller.currentOnglet.value ==
-                                                  controller.onglets
-                                                      .indexOf(element) &&
-                                              controller.onglets.length > 1
-                                          ? 25
-                                          : 0,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          controller.onglets.remove(element);
-                                          if (controller.onglets.length == 1) {
-                                            controller.onglets.first.name =
-                                                "Onglet 1";
-                                            controller.currentOnglet.value = 0;
-                                          }
-                                          controller.tabController.value =
-                                              TabController(
-                                                  length:
-                                                      controller.onglets.length,
-                                                  vsync: controller);
-                                          controller.tabController.value
-                                              .addListener(controller.listener);
-                                          controller.tabController.value
-                                              .animateTo(
-                                                  controller.onglets.length -
-                                                      1);
-                                        },
-                                        child: const Icon(
-                                          Icons.cancel,
-                                          color: Colors.white,
+                                scale: controller.currentOnglet.value ==
+                                        controller.onglets.indexOf(element)
+                                    ? 1
+                                    : 1,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  constraints:
+                                      const BoxConstraints(minHeight: 40),
+                                  margin: const EdgeInsets.only(right: 0),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 5, horizontal: 5),
+                                  decoration: BoxDecoration(
+                                    color: controller.currentOnglet.value ==
+                                            controller.onglets.indexOf(element)
+                                        ? primaryColor
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Gap(5),
+                                      Text(
+                                        element.name,
+                                        style: TextStyle(
+                                          color:
+                                              controller.currentOnglet.value ==
+                                                      controller.onglets
+                                                          .indexOf(element)
+                                                  ? Colors.white
+                                                  : Colors.black,
                                         ),
                                       ),
-                                    ).animate().scaleXY(duration: 100.ms),
-                                  ],
+                                      AnimatedContainer(
+                                        margin: const EdgeInsets.only(left: 10),
+                                        clipBehavior: Clip.antiAlias,
+                                        decoration: const BoxDecoration(),
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        width: controller.currentOnglet.value ==
+                                                    controller.onglets
+                                                        .indexOf(element) &&
+                                                controller.onglets.length > 1
+                                            ? 25
+                                            : 0,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            controller.onglets.remove(element);
+                                            if (controller.onglets.length ==
+                                                1) {
+                                              controller.onglets.first.name =
+                                                  "Onglet 1";
+                                              controller.currentOnglet.value =
+                                                  0;
+                                            }
+                                            controller.tabController.value =
+                                                TabController(
+                                                    length: controller
+                                                        .onglets.length,
+                                                    vsync: controller);
+                                            controller.tabController.value
+                                                .addListener(
+                                                    controller.listener);
+                                            controller.tabController.value
+                                                .animateTo(
+                                                    controller.onglets.length -
+                                                        1);
+                                          },
+                                          child: const Icon(
+                                            Icons.cancel,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ).animate().scaleXY(duration: 100.ms),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -121,9 +132,9 @@ class MainPage extends GetView<MainController> {
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                  padding: EdgeInsets.only(bottom: 15, top: 1),
                   child: Divider(
-                    color: Colors.black,
+                    color: Colors.black45,
                     height: 0,
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -35,24 +36,23 @@ Future<void> loadHistory() async {
 }
 
 class HomeController extends GetxController {
-  TextEditingController reqTypeController =
-      TextEditingController(text: ReqType.get);
-
-  TextEditingController urlController = TextEditingController();
-
   RxList<ReqParams> params = <ReqParams>[].obs;
-  RxBool paramsOpen = true.obs;
-  late AnimationController paramsAnimationController;
-
   RxList<ReqHeaders> headers = <ReqHeaders>[].obs;
-  RxBool headersOpen = true.obs;
-  late AnimationController headersAnimationController;
 
+  RxBool paramsOpen = true.obs;
+  RxBool headersOpen = true.obs;
   RxBool showWebView = false.obs;
   RxBool lockWebView = false.obs;
-
   RxBool fetching = false.obs;
+
   RxString result = ''.obs;
+
+  TextEditingController reqTypeController =
+      TextEditingController(text: ReqType.get);
+  TextEditingController urlController = TextEditingController();
+
+  // ignore: constant_identifier_names
+  static const Duration TIMEOUT = Duration(seconds: 15);
 
   late Onglet onglet;
 
@@ -66,7 +66,7 @@ class HomeController extends GetxController {
         },
         onPageStarted: (String url) {},
         onPageFinished: (String url) async {
-         await webViewController.runJavaScriptReturningResult(
+          await webViewController.runJavaScriptReturningResult(
               "document.documentElement.outerHTML;");
           setTitle();
         },
@@ -90,25 +90,49 @@ class HomeController extends GetxController {
     return url;
   }
 
+  String baseUrl(String url) {
+    return url
+        .replaceAll('https://', "")
+        .replaceAll("http://", "")
+        .replaceAll("www.", "")
+        .split("/")[0];
+  }
+
+  bool isLocal(String url) {
+    return baseUrl(url).startsWith('localhost:') || baseUrl(url).isIPv4;
+  }
+
+  bool isURL(String url) {
+    return url.isURL ||
+        baseUrl(url).isIPv4 ||
+        url.startsWith("localhost:") ||
+        url.split(":")[0].isIPv4;
+  }
+
   Future<void> fetchUrl() async {
     String url = realUrl;
-    if (!url.isURL) {
+    print(baseUrl(url));
+    print(url);
+    if (!isURL(url) && !isURL(baseUrl(url))) {
       message("URL non valide");
       return;
     }
     var type = reqTypeController.text;
     if (!ReqType.all.contains(type)) message("Méthode $type invalide");
 
-    if (!url.endsWith("/") && !url.contains("?")) url = "$url/";
-
+    // if (!url.endsWith("/") && !url.contains("?")) url = "$url/";
+    String paramString = "";
     for (var param in params) {
-      String paramString = "${param.key}=${param.value}";
-      if (!url.endsWith("?")) url = "$url?";
-      url = "$url$paramString&";
+      paramString += "${param.key}=${param.value}&";
     }
+    if (paramString.trim().isNotEmpty) {
+      url = "$url?$paramString";
+    }
+
     if (url.endsWith("&")) url = url.substring(0, url.length - 1);
 
     fetching.value = true;
+    if (isLocal(url)) url = url.replaceAll("www.", "");
     Uri uri = Uri.parse(url);
     print("Requesting $uri");
     var headers = <String, String>{};
@@ -135,42 +159,48 @@ class HomeController extends GetxController {
     try {
       switch (type) {
         case ReqType.get:
-          result.value = (await http.get(
-            uri,
-            headers: headers,
-          ))
+          result.value = (await http
+                  .get(
+                    uri,
+                    headers: headers,
+                  )
+                  .timeout(TIMEOUT))
               .body;
           break;
         case ReqType.post:
-          result.value = (await http.post(
-            uri,
-            headers: headers,
-            body: body,
-          ))
+          result.value = (await http
+                  .post(uri, headers: headers, body: body)
+                  .timeout(TIMEOUT))
               .body;
           break;
         case ReqType.delete:
-          result.value = (await http.delete(
-            uri,
-            headers: headers,
-            body: body,
-          ))
+          result.value = (await http
+                  .delete(
+                    uri,
+                    headers: headers,
+                    body: body,
+                  )
+                  .timeout(TIMEOUT))
               .body;
           break;
         case ReqType.put:
-          result.value = (await http.put(
-            uri,
-            headers: headers,
-            body: body,
-          ))
+          result.value = (await http
+                  .put(
+                    uri,
+                    headers: headers,
+                    body: body,
+                  )
+                  .timeout(TIMEOUT))
               .body;
           break;
         case ReqType.update:
-          result.value = (await http.put(
-            uri,
-            headers: headers,
-            body: body,
-          ))
+          result.value = (await http
+                  .put(
+                    uri,
+                    headers: headers,
+                    body: body,
+                  )
+                  .timeout(TIMEOUT))
               .body;
           break;
         default:
@@ -191,6 +221,7 @@ class HomeController extends GetxController {
 
   void addParams() {
     params.add(ReqParams());
+    paramsOpen.value = true;
   }
 
   void setOnglet(Onglet onglet) {
@@ -263,6 +294,7 @@ class HomeController extends GetxController {
                         }
 
                         headers.add(header);
+                        headersOpen.value = true;
                       },
                       splashColor: Colors.blueGrey,
                       child: const Padding(
